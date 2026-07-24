@@ -7,6 +7,9 @@ class Board:
         self.turn_dict = {}
         for i in range(9):
             self.turn_dict[i+1] = self.space
+        self.game_over = False
+        self.player_1_winner = False
+        self.player_2_winner = False
 
     def make_board(self):
         counter = 1
@@ -25,36 +28,77 @@ class Board:
                     print(self.wall, end="")
         print("\n")
 
+    def check_combo(self):
+        add_num = 1
+        winning_numbers = [1, 2, 3, 4, 7]
+        start_num_dict = {
+            1: [1, 4, 7],
+            2: [3],
+            3: [1, 2, 3],
+            4: [1]
+        }
+        while add_num <= 4:
+            for i in winning_numbers:
+                if i in start_num_dict[add_num]:
+                    for item in start_num_dict[add_num]:
+                        current_combo = [self.turn_dict[item], 
+                                        self.turn_dict[item+add_num], 
+                                        self.turn_dict[item+(add_num*2)]]
+                        if not self.check_win(current_combo):
+                            pass
+                        else:
+                            self.game_over = True
+                            break
+            add_num += 1
+
+    def check_win(self, combo):
+        if all(move == " O " for move in combo):
+            self.player_1_winner = True
+            return True
+        elif all(move == " X " for move in combo):
+            self.player_2_winner = True
+            return True
+        else:
+            return False
+        
+
+
 board = Board()
 
 class Move:
     def __init__(self):
-        self.player_1_turn = True
-        while True:
+        turn_count = 1
+        while turn_count <= 9:
             try:
                 self.guess = int(input("Which square? (1 - 9): "))
                 if 1 <= self.guess <= 9:
                     if board.turn_dict[self.guess] != board.space:
                         print("Invalid input! Square already taken.\n")
                     else:
-                        if self.player_1_turn:
+                        if turn_count % 2 == 1 or turn_count == 1:
                             board.turn_dict[self.guess] = " O "
-                            self.player_1_turn = False
+                            turn_count += 1
+                            board.check_combo()
                         else:
                             board.turn_dict[self.guess] = " X "
-                            self.player_1_turn = True 
-
+                            turn_count += 1
+                            board.check_combo()
                         board.make_board()
                 else:
                     print("Invalid input! Please input a number 1-9.")
             except ValueError:
                 print("Invalid input! Please input a number 1-9.")
 
+            if board.game_over:
+                if board.player_1_winner:
+                    print("PLAYER 1 WINS!\n")
+                elif board.player_2_winner:
+                    print("PLAYER 2 WINS!\n")
+                break
 
-
+            if turn_count == 10:
+                print("DRAW!")
+        
 
 board.make_board()
-
 move = Move()
-
-board = []
