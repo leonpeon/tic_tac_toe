@@ -7,10 +7,10 @@ class Board:
         self.turn_dict = {}
         for i in range(9):
             self.turn_dict[i+1] = self.space
-        self.new_game = True
 
     def make_board(self):
         counter = 1
+        print("\n")
         for i in range(17):
             i += 1
             if i % 2 == 1 or i == 1:
@@ -23,26 +23,38 @@ class Board:
                     print(f"\n{self.floor}")
                 else:
                     print(self.wall, end="")
-                    
+        print("\n")
+
+board = Board()
 
 class Move:
     def __init__(self):
+        self.player_1_turn = True
         while True:
             try:
                 self.guess = int(input("Which square? (1 - 9): "))
                 if 1 <= self.guess <= 9:
-                    Board.new_game = False
-                    break
+                    if board.turn_dict[self.guess] != board.space:
+                        print("Invalid input! Square already taken.\n")
+                    else:
+                        if self.player_1_turn:
+                            board.turn_dict[self.guess] = " O "
+                            self.player_1_turn = False
+                        else:
+                            board.turn_dict[self.guess] = " X "
+                            self.player_1_turn = True 
+
+                        board.make_board()
                 else:
                     print("Invalid input! Please input a number 1-9.")
             except ValueError:
                 print("Invalid input! Please input a number 1-9.")
 
 
-board = Board()
+
 
 board.make_board()
 
-# move = Move()
+move = Move()
 
 board = []
