@@ -12,7 +12,8 @@ class Board:
         self.game_over = False
         self.player_1_winner = False
         self.player_2_winner = False
-        self.must_play_moves = []
+        self.win_moves = []
+        self.block_moves = []
         self.set_up_moves = []
 
     # Creates the game board. It keeps track of which spaces have already been played by using the turn_dict.
@@ -46,6 +47,10 @@ class Board:
         }
 
         # Checks if any of the winning combos have been fulfilled.
+        self.win_moves = []
+        self.block_moves = []
+        self.set_up_moves = []
+        
         while add_num <= 4:
             for i in winning_numbers:
                 if i in add_num_dict[add_num]:
@@ -68,7 +73,12 @@ class Board:
                             break
 
                         # In hard mode, this checks all the winning moves for the player
-                        if " X " in current_combo and " O " in current_combo:
+                        
+                        if current_combo.count(" X ") == 2 and current_combo.count(" O ") == 0:
+                            winning_number = combo_index[current_combo.index(self.space)]
+                            if winning_number not in self.win_moves:
+                                self.win_moves.append(winning_number)
+                        elif " X " in current_combo and " O " in current_combo:
                             pass
                         elif all(move == self.space for move in current_combo):
                             pass
@@ -82,8 +92,8 @@ class Board:
                             block = current_combo.index(self.space)
                             next_move = combo_index[block]
 
-                            if next_move not in self.must_play_moves:
-                                self.must_play_moves.append(next_move)
+                            if next_move not in self.block_moves:
+                                self.block_moves.append(next_move)
 
             add_num += 1
 
@@ -125,8 +135,8 @@ class Move:
             try:
                 if self.turn_count % 2 != 0:
                     choice = int(input("Which square? (1 - 9): "))
-                    if choice in board.must_play_moves:
-                        board.must_play_moves.remove(choice)
+                    if choice in board.block_moves:
+                        board.block_moves.remove(choice)
                 elif self.turn_count % 2 == 0 and cpu:
                     if cpu_mode == "easy":
                         choice = self.cpu_move_easy()
@@ -134,14 +144,14 @@ class Move:
                         choice = self.cpu_move_hard()
                 elif self.turn_count % 2 == 0:
                     choice = int(input("Which square? (1 - 9): "))    
-                    if choice in board.must_play_moves:
-                        board.must_play_moves.remove(choice)          
+                    if choice in board.block_moves:
+                        board.block_moves.remove(choice)          
                     
                 if 1 <= choice <= 9:
                     if board.turn_dict[choice] != board.space:
+                        print(choice)
                         print("Invalid input! Square already taken.\n")
                     else:
-
                         if self.turn_count % 2 != 0:
                             board.turn_dict[choice] = " O "
                             self.turn_count += 1
@@ -184,12 +194,13 @@ class Move:
 #            Otherwise, the CPU will choose a move which sets itself up for a win.
 # NEED TO IMPLEMENT
     def cpu_move_hard(self):
-        if board.must_play_moves:
-            cpu_move = random.choice(board.must_play_moves)
-            print(board.must_play_moves)
-            board.must_play_moves.remove(cpu_move)
+        if board.win_moves:
+            cpu_move = random.choice(board.win_moves)
             return cpu_move
-        # NEED TO CREATE A WAY TO SET UP WINNING COMBOS FOR CPU
+        elif board.block_moves:
+            cpu_move = random.choice(board.block_moves)
+            board.block_moves.remove(cpu_move)
+            return cpu_move
         else:
             return self.cpu_move_easy()
             
