@@ -12,6 +12,7 @@ class Board:
         self.game_over = False
         self.player_1_winner = False
         self.player_2_winner = False
+        self.must_play_moves = []
 
     # Creates the game board. It keeps track of which spaces have already been played by using the turn_dict.
     def make_board(self):
@@ -42,20 +43,45 @@ class Board:
             3: [1, 2, 3],
             4: [1]
         }
+
         # Checks if any of the winning combos have been fulfilled.
         while add_num <= 4:
             for i in winning_numbers:
                 if i in add_num_dict[add_num]:
                     for item in add_num_dict[add_num]:
-                        current_combo = [self.turn_dict[item], 
-                                        self.turn_dict[item+add_num], 
-                                        self.turn_dict[item+(add_num*2)]]
+                        first_num = item
+                        second_num = item+add_num
+                        third_num = item+(add_num*2)
+                        current_combo = [self.turn_dict[first_num], 
+                                        self.turn_dict[second_num], 
+                                        self.turn_dict[third_num]]
+
                         # Checks if a winning combo has three X's or O's
                         if not self.check_win(current_combo):
                             pass
                         else:
                             self.game_over = True
                             break
+
+                        # In hard mode, this checks all the winning moves for the player
+                        if " X " in current_combo and " O " in current_combo:
+                            pass
+                        elif all(move == self.space for move in current_combo):
+                            pass
+                        elif current_combo.count(" O ") < 2:
+                            pass
+                        else:
+                            block = current_combo.index(self.space)
+                            if block == 0:
+                                next_move = first_num
+                            elif block == 1:
+                                next_move = second_num
+                            elif block == 2:
+                                next_move = third_num
+
+                            if next_move not in self.must_play_moves:
+                                self.must_play_moves.append(next_move)
+
             add_num += 1
 
     # Checks if a winning combo has three X's or O's
@@ -94,18 +120,25 @@ class Move:
         # Asks player to make a move, and automatically makes the CPU move once the player has chosen a move.
         if self.turn_count <= 9:
             try:
-                if cpu:
+                if self.turn_count % 2 != 0:
+                    choice = int(input("Which square? (1 - 9): "))
+                    if choice in board.must_play_moves:
+                        board.must_play_moves.remove(choice)
+                elif self.turn_count % 2 == 0 and cpu:
                     if cpu_mode == "easy":
                         choice = self.cpu_move_easy()
                     elif cpu_mode == "hard":
                         choice = self.cpu_move_hard()
-                else:
-                    choice = int(input("Which square? (1 - 9): "))
+                elif self.turn_count % 2 == 0:
+                    choice = int(input("Which square? (1 - 9): "))    
+                    if choice in board.must_play_moves:
+                        board.must_play_moves.remove(choice)          
                     
                 if 1 <= choice <= 9:
                     if board.turn_dict[choice] != board.space:
                         print("Invalid input! Square already taken.\n")
                     else:
+
                         if self.turn_count % 2 != 0:
                             board.turn_dict[choice] = " O "
                             self.turn_count += 1
@@ -114,7 +147,6 @@ class Move:
                             board.turn_dict[choice] = " X "
                             self.turn_count += 1
                             board.check_combo()
-                    board.make_board()
                 else:
                     print("Invalid input! Please input a number 1-9.")
             except ValueError:
@@ -122,13 +154,15 @@ class Move:
 
             # Checks if a player has won, or if there is draw.
             if board.game_over:
+                board.make_board()
                 if board.player_1_winner:
                     print("PLAYER 1 WINS!\n")
                 elif board.player_2_winner:
                     print("PLAYER 2 WINS!\n")
 
             if self.turn_count == 10 and not board.game_over:
-                print("DRAW!")
+                board.make_board()
+                print("DRAW!\n")
                 board.game_over = True
 
 # Easy mode: the CPU choses a random space in out of all available spaces.
@@ -147,7 +181,14 @@ class Move:
 #            Otherwise, the CPU will choose a move which sets itself up for a win.
 # NEED TO IMPLEMENT
     def cpu_move_hard(self):
-        pass
+        if board.must_play_moves:
+            cpu_move = random.choice(board.must_play_moves)
+            print(board.must_play_moves)
+            board.must_play_moves.remove(cpu_move)
+            return cpu_move
+        else:
+            return self.cpu_move_easy()
+            
 
 move = Move()
 
