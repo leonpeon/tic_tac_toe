@@ -1,3 +1,5 @@
+import random
+
 class Board:
     def __init__(self):
         self.space = "   "
@@ -74,20 +76,29 @@ class Move:
     def __init__(self):
         self.turn_count = 1
 
-    def player_turn(self):
+    def player_turn(self, cpu_human):
+        if cpu_human == 1:
+            cpu = True
+        else:
+            cpu = False
+        
         if self.turn_count <= 9:
             try:
-                self.guess = int(input("Which square? (1 - 9): "))
-                if 1 <= self.guess <= 9:
-                    if board.turn_dict[self.guess] != board.space:
+                if self.turn_count % 2 != 0:
+                    choice = int(input("Which square? (1 - 9): "))
+                elif cpu:
+                    choice = self.cpu_move()
+                    
+                if 1 <= choice <= 9:
+                    if board.turn_dict[choice] != board.space:
                         print("Invalid input! Square already taken.\n")
                     else:
-                        if self.turn_count % 2 == 1 or self.turn_count == 1:
-                            board.turn_dict[self.guess] = " O "
+                        if self.turn_count % 2 != 0:
+                            board.turn_dict[choice] = " O "
                             self.turn_count += 1
                             board.check_combo()
                         else:
-                            board.turn_dict[self.guess] = " X "
+                            board.turn_dict[choice] = " X "
                             self.turn_count += 1
                             board.check_combo()
                     board.make_board()
@@ -102,22 +113,40 @@ class Move:
                 elif board.player_2_winner:
                     print("PLAYER 2 WINS!\n")
 
-            if self.turn_count == 10:
+            if self.turn_count == 10 and not board.game_over:
                 print("DRAW!")
-        
-# Create AI for tic-tac-toe
+                board.game_over = True
+
+    def cpu_move(self):
+        turn_dict = board.turn_dict
+        valid_moves = list(turn_dict.keys())
+        for item in range(9):
+            dict_num = item + 1            
+            if turn_dict[dict_num] != board.space:
+                valid_moves.remove(dict_num)
+        cpu_move = random.choice(valid_moves)
+        print(valid_moves)
+        return(cpu_move)
 
 move = Move()
 
-while board.game_over is False:
-    board.make_board()
-    move.player_turn()
+while True:
+    cpu_or_human = int(input("Do you want to play against the CPU or Player 2? (1 or 2): "))
+    if cpu_or_human != 1 and cpu_or_human != 2:
+        print("Invalid input! Please type either 1 or 2.")
+    else:
+        break
 
-    if board.game_over:
-        game_continue = input("Do you want to play again? (y/n): ").lower()
-        if game_continue == "y":
-            board.reset_board()
-            move.turn_count = 1
-        elif game_continue == "n":
-            print("GOODBYE")
-            break
+while board.game_over is False:
+        if cpu_or_human == 1 or cpu_or_human == 2:
+            board.make_board()
+            move.player_turn(cpu_human=cpu_or_human)
+
+        if board.game_over:
+            game_continue = input("Do you want to play again? (y/n): ").lower()
+            if game_continue == "y":
+                board.reset_board()
+                move.turn_count = 1
+            elif game_continue == "n":
+                print("GOODBYE")
+                break
