@@ -13,6 +13,7 @@ class Board:
         self.player_1_winner = False
         self.player_2_winner = False
         self.must_play_moves = []
+        self.set_up_moves = []
 
     # Creates the game board. It keeps track of which spaces have already been played by using the turn_dict.
     def make_board(self):
@@ -49,12 +50,15 @@ class Board:
             for i in winning_numbers:
                 if i in add_num_dict[add_num]:
                     for item in add_num_dict[add_num]:
-                        first_num = item
-                        second_num = item+add_num
-                        third_num = item+(add_num*2)
-                        current_combo = [self.turn_dict[first_num], 
-                                        self.turn_dict[second_num], 
-                                        self.turn_dict[third_num]]
+                        combo_index = [
+                            item,
+                            item+add_num,
+                            item+(add_num*2)
+                        ]
+
+                        current_combo = [self.turn_dict[combo_index[0]], 
+                                        self.turn_dict[combo_index[1]], 
+                                        self.turn_dict[combo_index[2]]]
 
                         # Checks if a winning combo has three X's or O's
                         if not self.check_win(current_combo):
@@ -69,15 +73,14 @@ class Board:
                         elif all(move == self.space for move in current_combo):
                             pass
                         elif current_combo.count(" O ") < 2:
-                            pass
+                            for item in current_combo:
+                                if item == self.space:
+                                    if combo_index[current_combo.index(item)] not in self.set_up_moves:
+                                        self.set_up_moves.append(combo_index[current_combo.index(item)])
+
                         else:
                             block = current_combo.index(self.space)
-                            if block == 0:
-                                next_move = first_num
-                            elif block == 1:
-                                next_move = second_num
-                            elif block == 2:
-                                next_move = third_num
+                            next_move = combo_index[block]
 
                             if next_move not in self.must_play_moves:
                                 self.must_play_moves.append(next_move)
@@ -186,6 +189,7 @@ class Move:
             print(board.must_play_moves)
             board.must_play_moves.remove(cpu_move)
             return cpu_move
+        # NEED TO CREATE A WAY TO SET UP WINNING COMBOS FOR CPU
         else:
             return self.cpu_move_easy()
             
