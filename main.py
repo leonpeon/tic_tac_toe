@@ -76,7 +76,7 @@ class Move:
     def __init__(self):
         self.turn_count = 1
 
-    def player_turn(self, cpu_human):
+    def player_turn(self, cpu_human, cpu_mode):
         if cpu_human == 1:
             cpu = True
         else:
@@ -84,10 +84,13 @@ class Move:
         
         if self.turn_count <= 9:
             try:
-                if self.turn_count % 2 != 0:
+                if cpu:
+                    if cpu_mode == "easy":
+                        choice = self.cpu_move_easy()
+                    elif cpu_mode == "hard":
+                        choice = self.cpu_move_hard()
+                else:
                     choice = int(input("Which square? (1 - 9): "))
-                elif cpu:
-                    choice = self.cpu_move()
                     
                 if 1 <= choice <= 9:
                     if board.turn_dict[choice] != board.space:
@@ -117,7 +120,7 @@ class Move:
                 print("DRAW!")
                 board.game_over = True
 
-    def cpu_move(self):
+    def cpu_move_easy(self):
         turn_dict = board.turn_dict
         valid_moves = list(turn_dict.keys())
         for item in range(9):
@@ -128,19 +131,32 @@ class Move:
         print(valid_moves)
         return(cpu_move)
 
+    def cpu_move_hard(self):
+        # Needs to check the moves which would allow for the player to win,
+        # and then moves which allows for the CPU to win.
+        pass
+
 move = Move()
 
 while True:
     cpu_or_human = int(input("Do you want to play against the CPU or Player 2? (1 or 2): "))
+    cpu_mode = None
     if cpu_or_human != 1 and cpu_or_human != 2:
         print("Invalid input! Please type either 1 or 2.")
     else:
+        if cpu_or_human == 1:
+            while True:
+                cpu_mode = input("Choose difficulty: easy/hard?: ").lower()
+                if cpu_mode != "easy" and cpu_mode != "hard":
+                    print("Invalid input! Please type 'easy' or 'hard'.")
+                else:
+                    break
         break
 
 while board.game_over is False:
         if cpu_or_human == 1 or cpu_or_human == 2:
             board.make_board()
-            move.player_turn(cpu_human=cpu_or_human)
+            move.player_turn(cpu_human=cpu_or_human, cpu_mode=cpu_mode)
 
         if board.game_over:
             game_continue = input("Do you want to play again? (y/n): ").lower()
